@@ -9,34 +9,42 @@ object ToDoServer {
 
     val port = 12321
 
-    private val defaultItem = ToDoItem(
-        UUID.randomUUID().toString(),
-        "Write A Task Management App",
-        "I'm so proud of you!",
-        ToDoItem.TaskType.TASK,
-        ToDoItem.TaskUrgency.MEDIUM,
-        System.currentTimeMillis()
-    )
 
-    private val secondItem = ToDoItem(
-        UUID.randomUUID().toString(),
-        "Buy fruit",
-        "Organic, please!",
-        ToDoItem.TaskType.SHOPPING,
-        ToDoItem.TaskUrgency.LOW,
-        System.currentTimeMillis()
-    )
+    val toDoItems = listOf(
 
-    private val thirdItem = ToDoItem(
-        UUID.randomUUID().toString(),
-        "Taxes",
-        "Do your taxes, foo",
-        ToDoItem.TaskType.TASK,
-        ToDoItem.TaskUrgency.HIGH,
-        System.currentTimeMillis()
-    )
+        ToDoItem(
+            UUID.randomUUID().toString(),
+            "Write A Task Management App",
+            "I'm so proud of you!",
+            ToDoItem.TaskType.TASK,
+            ToDoItem.TaskUrgency.MEDIUM,
+            System.currentTimeMillis()
+        )
+        , ToDoItem(
+            UUID.randomUUID().toString(),
+            "Buy fruit",
+            "Organic, please!",
+            ToDoItem.TaskType.SHOPPING,
+            ToDoItem.TaskUrgency.LOW,
+            System.currentTimeMillis()
+        ),
 
-    val toDoItems = listOf(defaultItem, secondItem, thirdItem)
+        ToDoItem(
+            UUID.randomUUID().toString(),
+            "Taxes",
+            "Do your taxes, foo",
+            ToDoItem.TaskType.TASK,
+            ToDoItem.TaskUrgency.HIGH,
+            System.currentTimeMillis()
+        ),
+
+        ToDoItem(UUID.randomUUID().toString(),
+            "Sell Mustang",
+            "Find that guy's number",
+            ToDoItem.TaskType.TASK,
+            ToDoItem.TaskUrgency.HIGH,
+            System.currentTimeMillis())
+    )
 
 
     @JvmStatic
