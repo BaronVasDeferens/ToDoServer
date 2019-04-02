@@ -1,4 +1,5 @@
-import kotlinx.serialization.*
+
+import kotlinx.serialization.Serializable
 import java.util.*
 
 @Serializable

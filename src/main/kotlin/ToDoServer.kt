@@ -1,16 +1,16 @@
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.list
 import java.net.ServerSocket
-import java.net.Socket
 import java.nio.charset.Charset
 import java.util.*
+import kotlin.concurrent.thread
 
 object ToDoServer {
 
     val port = 12321
 
 
-    val toDoItems = listOf(
+    var toDoItems: List<ToDoItem> = listOf(
 
         ToDoItem(
             UUID.randomUUID().toString(),
@@ -38,12 +38,14 @@ object ToDoServer {
             System.currentTimeMillis()
         ),
 
-        ToDoItem(UUID.randomUUID().toString(),
+        ToDoItem(
+            UUID.randomUUID().toString(),
             "Sell Mustang",
             "Find that guy's number",
             ToDoItem.TaskType.TASK,
             ToDoItem.TaskUrgency.HIGH,
-            System.currentTimeMillis())
+            System.currentTimeMillis()
+        )
     )
 
 
@@ -51,34 +53,42 @@ object ToDoServer {
     fun main(args: Array<String>) {
 
 
-        val serverSocket = ServerSocket(port)
-        println("Listening on $port...")
+        thread(start = true) {
+            println(">>> Starting OUTPUT thread...")
+            val serverSocket = ServerSocket(12321)
+            while (true) {
+                val sendSocket = serverSocket.accept()
+                println(">>> CONNECTION: Data OUT")
 
+                synchronized(toDoItems) {
+                    val outputStream = sendSocket.getOutputStream()
+                    toDoItems.forEach { println(it) }
+                    val payloadContent = Json.stringify(ToDoItem.serializer().list, toDoItems)
+                    outputStream.write(payloadContent.toByteArray())
+                    sendSocket.close()
+                }
 
-
-        while (true) {
-            val connectionSocket = serverSocket.accept()
-            println("CONNECTION...")
-            //receiveData(connectionSocket)
-            sendData(connectionSocket)
-            connectionSocket.close()
+            }
         }
+
+        thread(start = true) {
+
+            val serverSocket = ServerSocket(12322)
+            while (true) {
+                val receiveSocket = serverSocket.accept()
+
+                val dataStream = receiveSocket.getInputStream()
+                val payloadAsBytes = dataStream.readBytes().toString(Charset.defaultCharset())
+                synchronized(toDoItems) {
+                    println(">>>> RECEIVING!!!")
+                    println(payloadAsBytes)
+                    toDoItems = Json.parse(ToDoItem.serializer().list, payloadAsBytes)
+                }
+                receiveSocket.close()
+            }
+        }
+
     }
 
-
-    private fun receiveData(socket: Socket): String {
-        val dataStream = socket.getInputStream()
-        val payloadAsBytes = dataStream.readAllBytes()
-        return payloadAsBytes.toString(Charset.defaultCharset())
-    }
-
-    private fun sendData(socket: Socket) {
-        val outputStream = socket.getOutputStream()
-
-
-        toDoItems.forEach { println(it) }
-        val payloadContent = Json.stringify(ToDoItem.serializer().list, toDoItems)
-        outputStream.write(payloadContent.toByteArray())
-    }
 }
 
