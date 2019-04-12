@@ -10,7 +10,8 @@ data class ToDoItem(
     val taskType: TaskType = TaskType.TASK,
     val taskUrgency: TaskUrgency = TaskUrgency.MEDIUM,
     val createdMillis: Long,
-    val completedMillis: Long = 0L
+    val completedMillis: Long = 0L,
+    val lastModifiedMillis: Long = 0L
 ) {
 
     enum class TaskType {
