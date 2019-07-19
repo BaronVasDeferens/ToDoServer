@@ -68,5 +68,5 @@ dependencies {
 task runApp(type: JavaExec) {
     classpath = sourceSets.main.compileClasspath + sourceSets.main.runtimeClasspath
 
-    main = 'App'
+    main = 'ToDoServer'
 }
