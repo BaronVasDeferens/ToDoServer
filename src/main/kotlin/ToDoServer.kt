@@ -6,56 +6,58 @@ import kotlin.concurrent.thread
 
 object ToDoServer {
 
-    val port = 12321
+    val sendPort = 12321
+    val receivePort = 12322
 
 
     var toDoItems: List<ToDoItem> = listOf(
 
 
-
-        ToDoItem(
-            "b263dba0-39fe-4c7e-9d3f-3f705031347f",
-            "Write A Task Management App",
-            "I'm so proud of you!",
-            ToDoItem.TaskType.TASK,
-            ToDoItem.TaskUrgency.MEDIUM,
-            System.currentTimeMillis()
-        )
-        , ToDoItem(
-            "f420942d-5c65-46b2-971d-e9cd1c66fb02",
-            "Buy fruit",
-            "Organic, please!",
-            ToDoItem.TaskType.SHOPPING,
-            ToDoItem.TaskUrgency.LOW,
-            System.currentTimeMillis()
-        ),
-
-        ToDoItem(
-            "94747e0b-8466-456d-9355-bb32f930c36a",
-            "Taxes",
-            "Do your taxes, foo",
-            ToDoItem.TaskType.TASK,
-            ToDoItem.TaskUrgency.HIGH,
-            System.currentTimeMillis()
-        ),
-
-        ToDoItem(
-            "c8fb1ae0-1db8-498b-8b6e-47d5ddcecdfb",
-            "Sell Mustang",
-            "Find that guy's number",
-            ToDoItem.TaskType.TASK,
-            ToDoItem.TaskUrgency.HIGH,
-            System.currentTimeMillis()
-        )
+//
+//        ToDoItem(
+//            "b263dba0-39fe-4c7e-9d3f-3f705031347f",
+//            "Write A Task Management App",
+//            "I'm so proud of you!",
+//            ToDoItem.TaskType.TASK,
+//            ToDoItem.TaskUrgency.MEDIUM,
+//            System.currentTimeMillis()
+//        )
+//        , ToDoItem(
+//            "f420942d-5c65-46b2-971d-e9cd1c66fb02",
+//            "Buy fruit",
+//            "Organic, please!",
+//            ToDoItem.TaskType.SHOPPING,
+//            ToDoItem.TaskUrgency.LOW,
+//            System.currentTimeMillis()
+//        ),
+//
+//        ToDoItem(
+//            "94747e0b-8466-456d-9355-bb32f930c36a",
+//            "Taxes",
+//            "Do your taxes, foo",
+//            ToDoItem.TaskType.TASK,
+//            ToDoItem.TaskUrgency.HIGH,
+//            System.currentTimeMillis()
+//        ),
+//
+//        ToDoItem(
+//            "c8fb1ae0-1db8-498b-8b6e-47d5ddcecdfb",
+//            "Sell Mustang",
+//            "Find that guy's number",
+//            ToDoItem.TaskType.TASK,
+//            ToDoItem.TaskUrgency.HIGH,
+//            System.currentTimeMillis()
+//        )
     )
 
+    // TODO: move into android project as separate module
 
     @JvmStatic
     fun main(args: Array<String>) {
 
         thread(start = true) {
             println(">>> Starting OUTPUT thread...")
-            val serverSocket = ServerSocket(12321)
+            val serverSocket = ServerSocket(sendPort)
             while (true) {
                 val sendSocket = serverSocket.accept()
                 println(">>> Data OUT (${sendSocket.remoteSocketAddress}) :: SENDING ${toDoItems.size} ITEMS")
@@ -73,7 +75,7 @@ object ToDoServer {
 
         thread(start = true) {
 
-            val serverSocket = ServerSocket(12322)
+            val serverSocket = ServerSocket(receivePort)
             while (true) {
                 val receiveSocket = serverSocket.accept()
 
