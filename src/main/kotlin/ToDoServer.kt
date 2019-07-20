@@ -7,49 +7,15 @@ import kotlin.concurrent.thread
 
 object ToDoServer {
 
-    val sendPort = 12321
-    val receivePort = 12322
+    private const val sendPort = 12321
+    private const val receivePort = 12322
+
+    // ExpirationMillis: if the difference between completedMillis and now() is greater than
+    // this value, an item should be deleted
+    private const val expirationMillis = 1 * 60 * 1000
 
 
-    var toDoItems: List<ToDoItem> = listOf(
-
-
-//
-//        ToDoItem(
-//            "b263dba0-39fe-4c7e-9d3f-3f705031347f",
-//            "Write A Task Management App",
-//            "I'm so proud of you!",
-//            ToDoItem.TaskType.TASK,
-//            ToDoItem.TaskUrgency.MEDIUM,
-//            System.currentTimeMillis()
-//        )
-//        , ToDoItem(
-//            "f420942d-5c65-46b2-971d-e9cd1c66fb02",
-//            "Buy fruit",
-//            "Organic, please!",
-//            ToDoItem.TaskType.SHOPPING,
-//            ToDoItem.TaskUrgency.LOW,
-//            System.currentTimeMillis()
-//        ),
-//
-//        ToDoItem(
-//            "94747e0b-8466-456d-9355-bb32f930c36a",
-//            "Taxes",
-//            "Do your taxes, foo",
-//            ToDoItem.TaskType.TASK,
-//            ToDoItem.TaskUrgency.HIGH,
-//            System.currentTimeMillis()
-//        ),
-//
-//        ToDoItem(
-//            "c8fb1ae0-1db8-498b-8b6e-47d5ddcecdfb",
-//            "Sell Mustang",
-//            "Find that guy's number",
-//            ToDoItem.TaskType.TASK,
-//            ToDoItem.TaskUrgency.HIGH,
-//            System.currentTimeMillis()
-//        )
-    )
+    var toDoItems: List<ToDoItem> = listOf()
 
     // TODO: move into android project as separate module
 
@@ -62,16 +28,17 @@ object ToDoServer {
             val serverSocket = ServerSocket(sendPort)
             while (true) {
                 val sendSocket = serverSocket.accept()
-                println(">>> Data OUT (${sendSocket.remoteSocketAddress}) :: SENDING ${toDoItems.size} ITEMS")
+                println(">>> SENDING TO (${sendSocket.remoteSocketAddress}) :: ${toDoItems.size} ITEMS")
 
                 synchronized(toDoItems) {
+
+                    toDoItems = toDoItems.filter {(it.completedMillis == 0L) || (it.completedMillis + expirationMillis > System.currentTimeMillis())}
+
                     val outputStream = sendSocket.getOutputStream()
-//                    toDoItems.forEach { println(it) }
                     val payloadContent = Json.stringify(ToDoItem.serializer().list, toDoItems)
                     outputStream.write(payloadContent.toByteArray())
                     sendSocket.close()
                 }
-
             }
         }
 
