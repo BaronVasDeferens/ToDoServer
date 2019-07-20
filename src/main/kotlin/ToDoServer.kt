@@ -1,5 +1,6 @@
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.list
+import java.net.InetAddress
 import java.net.ServerSocket
 import java.nio.charset.Charset
 import kotlin.concurrent.thread
@@ -56,7 +57,8 @@ object ToDoServer {
     fun main(args: Array<String>) {
 
         thread(start = true) {
-            println(">>> Starting OUTPUT thread...")
+            val ip = InetAddress.getLocalHost().hostAddress.toString()
+            println(">>> Starting $ip...")
             val serverSocket = ServerSocket(sendPort)
             while (true) {
                 val sendSocket = serverSocket.accept()
