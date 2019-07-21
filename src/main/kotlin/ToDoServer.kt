@@ -10,9 +10,12 @@ object ToDoServer {
     private const val sendPort = 12321
     private const val receivePort = 12322
 
+
+
     // ExpirationMillis: if the difference between completedMillis and now() is greater than
     // this value, an item should be deleted
-    private const val expirationMillis = 1 * 60 * 1000
+    private const val expirationSeconds = 60
+    private const val expirationMillis = expirationSeconds * 1000
 
 
     var toDoItems: List<ToDoItem> = listOf()
