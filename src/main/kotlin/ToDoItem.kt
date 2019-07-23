@@ -24,4 +24,8 @@ data class ToDoItem(
         MEDIUM,
         HIGH
     }
+
+    override fun toString(): String {
+        return "$taskName ($taskType $taskUrgency) lastModified: $lastModifiedMillis completed: $completedMillis"
+    }
 }

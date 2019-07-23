@@ -3,6 +3,7 @@ import kotlinx.serialization.list
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.nio.charset.Charset
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
 
 object ToDoServer {
@@ -14,11 +15,11 @@ object ToDoServer {
 
     // ExpirationMillis: if the difference between completedMillis and now() is greater than
     // this value, an item should be deleted
-    private const val expirationSeconds = 60
+    private const val expirationSeconds = 10
     private const val expirationMillis = expirationSeconds * 1000
 
 
-    var toDoItems: List<ToDoItem> = listOf()
+    private val toDoItems = ConcurrentHashMap<String, ToDoItem>()
 
     // TODO: move into android project as separate module
 
@@ -35,10 +36,14 @@ object ToDoServer {
 
                 synchronized(toDoItems) {
 
-                    toDoItems = toDoItems.filter {(it.completedMillis == 0L) || (it.completedMillis + expirationMillis > System.currentTimeMillis())}
+                    toDoItems.values.forEach{item ->
+                        if (item.completedMillis > 0L && item.completedMillis + expirationMillis < System.currentTimeMillis()) {
+                            toDoItems.remove(item.taskId)
+                        }
+                    }
 
                     val outputStream = sendSocket.getOutputStream()
-                    val payloadContent = Json.stringify(ToDoItem.serializer().list, toDoItems)
+                    val payloadContent = Json.stringify(ToDoItem.serializer().list, toDoItems.values.toList())
                     outputStream.write(payloadContent.toByteArray())
                     sendSocket.close()
                 }
@@ -46,6 +51,10 @@ object ToDoServer {
         }
 
         thread(start = true) {
+
+            /**
+             * Changes to an item are made on a device and are immediately sent to this thread
+             */
 
             val serverSocket = ServerSocket(receivePort)
             while (true) {
@@ -55,30 +64,29 @@ object ToDoServer {
                 val payloadAsBytes = dataStream.readBytes().toString(Charset.defaultCharset())
                 synchronized(toDoItems) {
                     println(">>> Data IN (${receiveSocket.remoteSocketAddress})")
+
                     val candidateItems = Json.parse(ToDoItem.serializer().list, payloadAsBytes)
-                    val canonicalItems: MutableList<ToDoItem> = mutableListOf()
 
-                    candidateItems.forEach { newItem ->
-                        val existingItem: ToDoItem? = toDoItems.firstOrNull{ it.taskId == newItem.taskId }
-
-                        println(existingItem)
+                    candidateItems
+                        .filter {newItem ->
+                            newItem.completedMillis == 0L || newItem.completedMillis + expirationMillis > System.currentTimeMillis()
+                        }
+                        .forEach { newItem ->
+                        val existingItem: ToDoItem? = toDoItems[newItem.taskId]
 
                         when {
                             // No record found for a task with that id: add as new item
                             existingItem == null -> {
-                                println(">>> \tNEW TASK: ${newItem.taskName}")
-                                canonicalItems.add(newItem)
+                                println(">>> \tNEW TASK: $newItem")
+                                toDoItems[newItem.taskId] = newItem
                             }
-                            // Record of existing item found: should it be updated?
-                            existingItem.lastModifiedMillis < newItem.lastModifiedMillis -> {
-                                println(">>> \tUPDATING TASK: ${newItem.taskName}")
-                                canonicalItems.add(newItem)
+                            // Record of existing item found: update if newer
+                            newItem.lastModifiedMillis > existingItem.lastModifiedMillis -> {
+                                println(">>> \tUPDATING TASK: $newItem")
+                               toDoItems[newItem.taskId] = newItem
                             }
-                            // Just
-                            else -> canonicalItems.add(existingItem)
                         }
                     }
-                    toDoItems = canonicalItems
                 }
                 receiveSocket.close()
             }
