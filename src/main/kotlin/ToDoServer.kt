@@ -3,6 +3,8 @@ import kotlinx.serialization.list
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.nio.charset.Charset
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
 
@@ -15,9 +17,10 @@ object ToDoServer {
 
     // ExpirationMillis: if the difference between completedMillis and now() is greater than
     // this value, an item should be deleted
-    private const val expirationSeconds = 10
+    private const val expirationSeconds = 60
     private const val expirationMillis = expirationSeconds * 1000
 
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
 
     private val toDoItems = ConcurrentHashMap<String, ToDoItem>()
 
@@ -32,7 +35,7 @@ object ToDoServer {
             val serverSocket = ServerSocket(sendPort)
             while (true) {
                 val sendSocket = serverSocket.accept()
-                println(">>> SENDING TO (${sendSocket.remoteSocketAddress}) :: ${toDoItems.size} ITEMS")
+                println(">>> SENDING ${dateFormat.format(Date())} (${sendSocket.remoteSocketAddress}) :: ${toDoItems.size} ITEMS")
 
                 synchronized(toDoItems) {
 
@@ -63,7 +66,7 @@ object ToDoServer {
                 val dataStream = receiveSocket.getInputStream()
                 val payloadAsBytes = dataStream.readBytes().toString(Charset.defaultCharset())
                 synchronized(toDoItems) {
-                    println(">>> Data IN (${receiveSocket.remoteSocketAddress})")
+                    println(">>> RECEIVING ${dateFormat.format(Date())} (${receiveSocket.remoteSocketAddress})")
 
                     val candidateItems = Json.parse(ToDoItem.serializer().list, payloadAsBytes)
 
